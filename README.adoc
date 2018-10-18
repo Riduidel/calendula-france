@@ -1,0 +1,5 @@
+= Calendula for France
+
+This project contains a script used to transform the french medicine database into a set of SQL statements able to fill a calendula instance with french medicines.
+
+It is built in conjunction with a Calendula `PrescriptionDBMgr` that will be built as soon as this transformer works.
