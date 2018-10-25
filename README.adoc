@@ -3,3 +3,135 @@
 This project contains a script used to transform the french medicine database into a set of SQL statements able to fill a calendula instance with french medicines.
 
 It is built in conjunction with a Calendula `PrescriptionDBMgr` that will be built as soon as this transformer works.
+
+## Getting Started
+
+Just run docker-compose up in project root directory to spin a groovy container that will get the data from public health website
+
+### Prerequisites
+
+You should have docker and docker-compose installed.
+
+## Mapping HAS database to calendula format
+
+I will try to explain how I choose to map french medicine database to calendula format. 
+For each file provided in french medicine database, I will give for each field how I plan to map it to calendula.
+Information for field usage is obtained from http://base-donnees-publique.medicaments.gouv.fr/docs/Contenu_et_format_des_fichiers_telechargeables_dans_la_BDM_v1.pdf
+
+### CIS_bdpm.txt
+
+According to documentation, this is the master file, containing essential informations
+
+* Code CIS (Code Identifiant de Spécialité) 
+* Dénomination du médicament 
+* Forme pharmaceutique 
+* Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs) 
+* Statut administratif de l’autorisation de mise sur le marché (AMM) 
+* Type de procédure d'autorisation de mise sur le marché (AMM) 
+* Etat de commercialisation 
+* Date d’AMM (format JJ/MM/AAAA) 
+* StatutBdm : valeurs possibles : « Alerte » (icône rouge) ou « Warning disponibilité » (icône grise) 
+* Numéro de l’autorisation européenne 
+* Titulaire(s) : S’il y a plusieurs titulaires, les valeurs seront séparées par des « ; » 
+* Surveillance renforcée (triangle noir) : valeurs « Oui » ou « Non » 
+
+### CIS_CIP_bdpm.txt 
+
+* Code CIS 
+* Code CIP7 (Code Identifiant de Présentation à 7 chiffres) 
+* Libellé de la présentation 
+* Statut administratif de la présentation 
+* Etat de commercialisation de la présentation tel que déclaré par le titulaire de l'AMM 
+* Date de la déclaration de commercialisation (format JJ/MM/AAAA) 
+* Code CIP13 (Code Identifiant de Présentation à 13 chiffres) 
+* Agrément aux collectivités ("oui", "non" ou « inconnu ») 
+* Taux de remboursement (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs) 
+* Prix du médicament en euro 
+* Texte présentant les indications ouvrant droit au remboursement par l’assurance maladie s’il y a plusieurs taux de remboursement pour la même présentation
+
+### CIS_COMPO_bdpm.txt 
+
+* Code CIS 
+* Désignation de l'élément pharmaceutique 
+* Code de la substance 
+* Dénomination de la substance 
+* Dosage de la substance 
+* Référence de ce dosage (exemple : "[pour] un comprimé") 
+* Nature du composant (principe actif : « SA » ou fraction thérapeutique : « ST ») 
+* Numéro permettant de lier, le cas échéant, substances actives et fractions thérapeutiques 
+
+### CIS_HAS_SMR_bdpm.txt 
+
+* Code CIS 
+* Code de dossier HAS
+* Motif d’évaluation 
+* Date de l’avis de la Commission de la transparence (format AAAAMMJJ) 
+* Valeur du SMR 
+* Libellé du SMR
+
+### CIS_HAS_ASMR_bdpm.txt 
+
+* Code CIS 
+* Code de dossier HAS
+* Motif d’évaluation 
+* Date de l’avis de la Commission de la transparence (format AAAAMMJJ) 
+* Valeur de l’ASMR 
+* Libellé de l’ASMR 
+
+### HAS_LiensPageCT_bdpm.txt 
+
+* Code de dossier HAS 
+* Lien vers les pages d’avis de la CT 
+
+### CIS_GENER_bdpm.txt 
+
+* Identifiant du groupe générique 
+* Libellé du groupe générique 
+* Code CIS 
+* Type de générique, avec les valeurs suivantes :  
+** 0 : « princeps » 
+** 1 : « générique » 
+** 2 : « génériques par complémentarité posologique » 
+** 4 : « générique substituable » 
+* Numéro permettant de trier les éléments d’un groupe
+
+### CIS_CPD_bdpm.txt 
+
+* Code CIS 
+* Condition de prescription ou de délivrance 
+
+### CIS_InfoImportantes_AAAAMMJJhhmiss_bdpm.txt 
+
+* Code CIS 
+* Date de début de l’information de sécurité (format JJ/MM/AAAA) 
+* Date de fin de l’information de sécurité (format JJ/MM/AAAA) 
+* Texte à afficher et lien vers l’information de sécurité 
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* **Nicolas Delsaux** - *Initial work*
+
+See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Thanks to https://github.com/citiususc/calendula[Calendula] team. This tool is awesome !
+* Obviously, what would I have done without Groovy ?
