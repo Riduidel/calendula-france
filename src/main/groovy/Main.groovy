@@ -23,7 +23,7 @@ public class Main {
                 "URL of website where to download files from. Defaults to ${PUBLIC_MEDICINE_DATABASE}")
         cli.t(longOpt: 'temporaryFolder', args:1, defaultValue: TEMPORARY_FOLDER, 
                 "Temporary folder for downloaded files. Defaults to ${TEMPORARY_FOLDER}")
-        cli.d(longOpt: 'tdestination', args:1, defaultValue: DESTINATION_FILE, 
+        cli.d(longOpt: 'destination', args:1, defaultValue: DESTINATION_FILE, 
                 "Destination file storing all SQL statements. Defaults to ${DESTINATION_FILE}")
         
         def options = cli.parse(args)
@@ -50,6 +50,7 @@ public class Main {
 class SQLWriter extends DefaultActor  {
     private OptionAccessor options
     private File destination
+    private Set<String> processors = new HashSet()
     public SQLWriter(OptionAccessor options) {
         super()
         this.options = options
@@ -60,7 +61,18 @@ class SQLWriter extends DefaultActor  {
     @Override protected void act() {
         loop {
             react { sqlLine ->
-               destination << sqlLine
+                if (sqlLine.startsWith(FileProcessor.START)) {
+                    processors.add(sqlLine.substring(FileProcessor.START.size()))
+                    log.info("Added one processor. There are ${processors.size()} processors")
+                } else if (sqlLine.startsWith(FileProcessor.STOP)) {
+                    processors.remove(sqlLine.substring(FileProcessor.STOP.size()))
+                    log.info("Removed one processor. There are ${processors.size()} processors")
+                    if (processors.size()<=0) {
+                        stop()
+                    }
+                } else {
+                    destination << sqlLine
+                }
             }
         }
     }
@@ -95,7 +107,6 @@ class OpenPageActor extends DefaultActor  {
                    log.info "We need to download \"${text}\""
                     def downloader = new DownloadFileActor(options, writer).start()
                     downloader.send address
-                    downloader.join()
                 }
                 writer.join()
                 stop()
@@ -127,7 +138,7 @@ class DownloadFileActor extends DefaultActor  {
             react { url ->
                 def fileName = url.substring(url.indexOf('=')+1)
                 File destination = new File(this.folder, fileName)
-                if (override) {
+                if (override || !destination.exists()) {
                     def realUrl = this.baseUrl+url
                     log.info "Downloading file from ${realUrl} to ${destination}"
                     def outputStream = destination.newOutputStream()  
@@ -141,6 +152,7 @@ class DownloadFileActor extends DefaultActor  {
                 destination.readLines().each {
                     reader.send it
                 }
+                reader.send FileProcessor.STOP
             }
             stop()
         }
@@ -170,120 +182,72 @@ class DownloadFileActor extends DefaultActor  {
     }
 }
 
-@Log public class CIS_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class FileProcessor extends DefaultActor  {
+    public static final String STOP = "stop:"
+    public static final String START = "start:"
+    private OptionAccessor options
+    SQLWriter writer
+    public FileProcessor(OptionAccessor options, SQLWriter writer) {
+        super()
+        this.options = options
+        this.writer = writer
+        writer.send START+this.class.name
+    }
+    @Override protected void act() {
+        loop {
+            react { line ->
+                if (STOP==line) {
+                    writer.send STOP+this.class.name
+                } else {
+
+                }
+            }
+        }
+    }
+}
+
+@Log class CIS_bdpm extends FileProcessor {
     public CIS_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_CIP_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_CIP_bdpm extends FileProcessor {
     public CIS_CIP_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_COMPO_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_COMPO_bdpm extends FileProcessor {
     public CIS_COMPO_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_CPD_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_CPD_bdpm extends FileProcessor {
     public CIS_CPD_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_GENER_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_GENER_bdpm extends FileProcessor {
     public CIS_GENER_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_HAS_ASMR_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_HAS_ASMR_bdpm extends FileProcessor {
     public CIS_HAS_ASMR_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_HAS_SMR_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_HAS_SMR_bdpm extends FileProcessor {
     public CIS_HAS_SMR_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class CIS_InfoImportantes extends DefaultActor {
-    private SQLWriter writer
+@Log class CIS_InfoImportantes extends FileProcessor {
     public CIS_InfoImportantes(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
-@Log public class HAS_LiensPageCT_bdpm extends DefaultActor {
-    private SQLWriter writer
+@Log class HAS_LiensPageCT_bdpm extends FileProcessor {
     public HAS_LiensPageCT_bdpm(OptionAccessor options, SQLWriter writer) {
-        super()
-        this.writer = writer
-    }
-    @Override protected void act() {
-        loop {
-            react { line ->
-            }
-        }
+        super(options, writer)
     }
 }
