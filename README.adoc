@@ -22,18 +22,18 @@ Information for field usage is obtained from http://base-donnees-publique.medica
 
 According to documentation, this is the master file, containing essential informations
 
-* Code CIS (Code Identifiant de Spécialité) 
-* Dénomination du médicament 
-* Forme pharmaceutique 
-* Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs) 
-* Statut administratif de l’autorisation de mise sur le marché (AMM) 
-* Type de procédure d'autorisation de mise sur le marché (AMM) 
-* Etat de commercialisation 
-* Date d’AMM (format JJ/MM/AAAA) 
-* StatutBdm : valeurs possibles : « Alerte » (icône rouge) ou « Warning disponibilité » (icône grise) 
-* Numéro de l’autorisation européenne 
-* Titulaire(s) : S’il y a plusieurs titulaires, les valeurs seront séparées par des « ; » 
-* Surveillance renforcée (triangle noir) : valeurs « Oui » ou « Non » 
+* "Code CIS (Code Identifiant de Spécialité)" mapped to `Prescription#code`
+* "Dénomination du médicament" mapped to `Prescription#name`
+* "Forme pharmaceutique"  mapped to `Prescription#presentation`
+* "Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)" mapped to `P"resentationForm#name` ?
+* "Statut administratif de l’autorisation de mise sur le marché (AMM)" **unmapped**
+* "Type de procédure d'autorisation de mise sur le marché (AMM)" **unmapped**
+* "Etat de commercialisation" 
+* "Date d’AMM (format JJ/MM/AAAA)" **unmapped**
+* "StatutBdm : valeurs possibles : « Alerte » (icône rouge) ou « Warning disponibilité » (icône grise)" **unmapped**
+* "Numéro de l’autorisation européenne" **unmapped**
+* "Titulaire(s) : S’il y a plusieurs titulaires, les valeurs seront séparées par des « ; »" **unmapped**
+* "Surveillance renforcée (triangle noir) : valeurs « Oui » ou « Non »" **unmapped**
 
 ### CIS_CIP_bdpm.txt 
 
