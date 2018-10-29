@@ -51,6 +51,7 @@ class SQLWriter extends DefaultActor  {
     private OptionAccessor options
     private File destination
     private Set<String> processors = new HashSet()
+    private Set<String> lines = new TreeSet()
     public SQLWriter(OptionAccessor options) {
         super()
         this.options = options
@@ -58,20 +59,24 @@ class SQLWriter extends DefaultActor  {
         destination.getParentFile().mkdirs()
         destination.delete()
     }
+    public void afterStop(List undeliveredMessages) {
+        lines.each { destination << it }
+    }
     @Override protected void act() {
         loop {
             react { sqlLine ->
                 if (sqlLine.startsWith(FileProcessor.START)) {
                     processors.add(sqlLine.substring(FileProcessor.START.size()))
-                    log.info("Added one processor. There are ${processors.size()} processors")
+                    log.fine "Added one processor. Processors are ${processors}"
                 } else if (sqlLine.startsWith(FileProcessor.STOP)) {
                     processors.remove(sqlLine.substring(FileProcessor.STOP.size()))
-                    log.info("Removed one processor. There are ${processors.size()} processors")
+                    log.fine "Removed one processor. Processors are ${processors}"
                     if (processors.size()<=0) {
+                        log.info "All processors should have terminated now. Stopping agent."
                         stop()
                     }
                 } else {
-                    destination << sqlLine
+                    lines << sqlLine
                 }
             }
         }
@@ -149,7 +154,7 @@ class DownloadFileActor extends DefaultActor  {
                 // Now open file, read each line, and send it to the right actor
                 def reader = createReader(fileName)
                 log.info "Reading lines of ${fileName}"
-                destination.readLines().each {
+                destination.getText('ISO-8859-1').eachLine {
                     reader.send it
                 }
                 reader.send FileProcessor.STOP
@@ -199,16 +204,26 @@ class DownloadFileActor extends DefaultActor  {
                 if (STOP==line) {
                     writer.send STOP+this.class.name
                 } else {
-
+                    processLine line
                 }
             }
         }
     }
+
+    protected void processLine(String line) {
+        processLineFragments(line.split('\t'))
+    }
+
+    protected void processLineFragments(String[] lineFragments) {}
 }
 
 @Log class CIS_bdpm extends FileProcessor {
     public CIS_bdpm(OptionAccessor options, SQLWriter writer) {
         super(options, writer)
+    }
+
+    protected void processLineFragments(String[] lineFragments) {
+        writer << """INSERT INTO Medicine ("PresentationFormID","Name") VALUES ("1","Adhesivo tisular");"""
     }
 }
 @Log class CIS_CIP_bdpm extends FileProcessor {
