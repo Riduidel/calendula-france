@@ -60,17 +60,19 @@ class SQLWriter extends DefaultActor  {
         destination.delete()
     }
     public void afterStop(List undeliveredMessages) {
-        lines.each { destination << it }
+        lines.each { destination.append it, "UTF-8" }
+        log.info "All lines have been written to ${destination.absolutePath}"
+        groovyx.gpars.GParsConfig.shutdown()
     }
     @Override protected void act() {
         loop {
             react { sqlLine ->
                 if (sqlLine.startsWith(FileProcessor.START)) {
                     processors.add(sqlLine.substring(FileProcessor.START.size()))
-                    log.fine "Added one processor. Processors are ${processors}"
+                    log.info "Added one processor. Processors are ${processors}"
                 } else if (sqlLine.startsWith(FileProcessor.STOP)) {
                     processors.remove(sqlLine.substring(FileProcessor.STOP.size()))
-                    log.fine "Removed one processor. Processors are ${processors}"
+                    log.info "Removed one processor. Processors are ${processors}"
                     if (processors.size()<=0) {
                         log.info "All processors should have terminated now. Stopping agent."
                         stop()
@@ -154,7 +156,7 @@ class DownloadFileActor extends DefaultActor  {
                 // Now open file, read each line, and send it to the right actor
                 def reader = createReader(fileName)
                 log.info "Reading lines of ${fileName}"
-                destination.getText('ISO-8859-1').eachLine {
+                destination.eachLine('ISO-8859-1') {
                     reader.send it
                 }
                 reader.send FileProcessor.STOP
@@ -203,6 +205,7 @@ class DownloadFileActor extends DefaultActor  {
             react { line ->
                 if (STOP==line) {
                     writer.send STOP+this.class.name
+                    stop()
                 } else {
                     processLine line
                 }
@@ -215,6 +218,10 @@ class DownloadFileActor extends DefaultActor  {
     }
 
     protected void processLineFragments(String[] lineFragments) {}
+
+    public void afterStop(List undeliveredMessages) {
+        log.info "All lines of ${this.class.name} should have been processed."
+    }
 }
 
 @Log class CIS_bdpm extends FileProcessor {
@@ -223,7 +230,12 @@ class DownloadFileActor extends DefaultActor  {
     }
 
     protected void processLineFragments(String[] lineFragments) {
-        writer << """INSERT INTO Medicine ("PresentationFormID","Name") VALUES ("1","Adhesivo tisular");"""
+        log.info "${lineFragments}"
+        // TODO restore presentation here
+        writer << """
+INSERT INTO -- ${lineFragments[1]}
+    Prescription ("Code","Name") VALUES 
+    ("${lineFragments[0]}", "${lineFragments[1]}" );"""
     }
 }
 @Log class CIS_CIP_bdpm extends FileProcessor {
