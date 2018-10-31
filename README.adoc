@@ -18,100 +18,104 @@ I will try to explain how I choose to map french medicine database to calendula 
 For each file provided in french medicine database, I will give for each field how I plan to map it to calendula.
 Information for field usage is obtained from http://base-donnees-publique.medicaments.gouv.fr/docs/Contenu_et_format_des_fichiers_telechargeables_dans_la_BDM_v1.pdf
 
+[NOTE]
+----
+According to calendula issue https://github.com/citiususc/calendula/issues/103#issuecomment-434270205[#103],
+there is a `_id` field in each table, wich is used by http://ormlite.com/[ORMLite].
+As this script is mainly a insert into generator, it does not need tha value, which will be left empty.
+----
+
 ### CIS_bdpm.txt
 
 According to documentation, this is the master file, containing essential informations
 
-* "Code CIS (Code Identifiant de Spécialité)" mapped to `Prescription#code`
-* "Dénomination du médicament" mapped to `Prescription#name`
-* "Forme pharmaceutique"  mapped to `Prescription#presentation`
-* "Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)" mapped to `P"resentationForm#name` ?
-* "Statut administratif de l’autorisation de mise sur le marché (AMM)" **unmapped**
-* "Type de procédure d'autorisation de mise sur le marché (AMM)" **unmapped**
-* "Etat de commercialisation" 
-* "Date d’AMM (format JJ/MM/AAAA)" **unmapped**
-* "StatutBdm : valeurs possibles : « Alerte » (icône rouge) ou « Warning disponibilité » (icône grise)" **unmapped**
-* "Numéro de l’autorisation européenne" **unmapped**
-* "Titulaire(s) : S’il y a plusieurs titulaires, les valeurs seront séparées par des « ; »" **unmapped**
-* "Surveillance renforcée (triangle noir) : valeurs « Oui » ou « Non »" **unmapped**
+* _Code CIS (Code Identifiant de Spécialité)_ mapped to `Prescription#code`
+* _Dénomination du médicament_ mapped to `Prescription#name`. **BEWARE** The denomination contains far more than name.
+As a consequence, a part of its name will be used to generate HomogenousGroup.
+* _Forme pharmaceutique_  mapped to `Prescription#presentation`
+* _Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_ mapped to `PrescriptionPresentationForm` ?
+* _Statut administratif de l’autorisation de mise sur le marché (AMM)_ **unmapped**
+* _Type de procédure d'autorisation de mise sur le marché (AMM)_ **unmapped**
+* _Etat de commercialisation_ **unmapped**
+* _Date d’AMM (format JJ/MM/AAAA)_ **unmapped**
+* _StatutBdm : valeurs possibles : « Alerte » (icône rouge) ou « Warning disponibilité » (icône grise)_ **unmapped**
+* _Numéro de l’autorisation européenne_ **unmapped**
+* _Titulaire(s) : S’il y a plusieurs titulaires, les valeurs seront séparées par des « ; »_ **unmapped**
+* _Surveillance renforcée (triangle noir) : valeurs « Oui » ou « Non »_ **unmapped**
 
 ### CIS_CIP_bdpm.txt 
 
-* Code CIS 
-* Code CIP7 (Code Identifiant de Présentation à 7 chiffres) 
-* Libellé de la présentation 
-* Statut administratif de la présentation 
-* Etat de commercialisation de la présentation tel que déclaré par le titulaire de l'AMM 
-* Date de la déclaration de commercialisation (format JJ/MM/AAAA) 
-* Code CIP13 (Code Identifiant de Présentation à 13 chiffres) 
-* Agrément aux collectivités ("oui", "non" ou « inconnu ») 
-* Taux de remboursement (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs) 
-* Prix du médicament en euro 
-* Texte présentant les indications ouvrant droit au remboursement par l’assurance maladie s’il y a plusieurs taux de remboursement pour la même présentation
+* _Code CIS_
+* _Code CIP7 (Code Identifiant de Présentation à 7 chiffres)_
+* _Libellé de la présentation_
+* _Statut administratif de la présentation_
+* _Etat de commercialisation de la présentation tel que déclaré par le titulaire de l'AMM_
+* _Date de la déclaration de commercialisation (format JJ/MM/AAAA)_
+* _Code CIP13 (Code Identifiant de Présentation à 13 chiffres)_
+* _Agrément aux collectivités ("oui", "non" ou « inconnu »)_
+* _Taux de remboursement (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_
+* _Prix du médicament en euro_
+* _Texte présentant les indications ouvrant droit au remboursement par l’assurance maladie s’il y a plusieurs taux de remboursement pour la même présentation_
 
 ### CIS_COMPO_bdpm.txt 
 
-* Code CIS 
-* Désignation de l'élément pharmaceutique 
-* Code de la substance 
-* Dénomination de la substance 
-* Dosage de la substance 
-* Référence de ce dosage (exemple : "[pour] un comprimé") 
-* Nature du composant (principe actif : « SA » ou fraction thérapeutique : « ST ») 
-* Numéro permettant de lier, le cas échéant, substances actives et fractions thérapeutiques 
+* _Code CIS_
+* _Désignation de l'élément pharmaceutique_
+* _Code de la substance_
+* _Dénomination de la substance_
+* _Dosage de la substance_
+* _Référence de ce dosage (exemple : "[pour] un comprimé")_
+* _Nature du composant (principe actif : « SA » ou fraction thérapeutique : « ST »)_
+* _Numéro permettant de lier, le cas échéant, substances actives et fractions thérapeutiques_
 
 ### CIS_HAS_SMR_bdpm.txt 
 
-* Code CIS 
-* Code de dossier HAS
-* Motif d’évaluation 
-* Date de l’avis de la Commission de la transparence (format AAAAMMJJ) 
-* Valeur du SMR 
-* Libellé du SMR
+* _Code CIS_
+* _Code de dossier HA_
+* _Motif d’évaluation_
+* _Date de l’avis de la Commission de la transparence (format AAAAMMJJ)_
+* _Valeur du SMR_
+* _Libellé du SM_
 
 ### CIS_HAS_ASMR_bdpm.txt 
 
-* Code CIS 
-* Code de dossier HAS
-* Motif d’évaluation 
-* Date de l’avis de la Commission de la transparence (format AAAAMMJJ) 
-* Valeur de l’ASMR 
-* Libellé de l’ASMR 
+* _Code CIS_
+* _Code de dossier HAS_
+* _Motif d’évaluation_
+* _Date de l’avis de la Commission de la transparence (format AAAAMMJJ)_
+* _Valeur de l’ASMR_
+* _Libellé de l’ASMR_
 
 ### HAS_LiensPageCT_bdpm.txt 
 
-* Code de dossier HAS 
-* Lien vers les pages d’avis de la CT 
+* _Code de dossier HAS_
+* _Lien vers les pages d’avis de la CT_
 
 ### CIS_GENER_bdpm.txt 
 
-* Identifiant du groupe générique 
-* Libellé du groupe générique 
-* Code CIS 
-* Type de générique, avec les valeurs suivantes :  
+* _Identifiant du groupe générique_
+* _Libellé du groupe générique_
+* _Code CIS_
+* _Type de générique_, avec les valeurs suivantes : 
 ** 0 : « princeps » 
 ** 1 : « générique » 
 ** 2 : « génériques par complémentarité posologique » 
 ** 4 : « générique substituable » 
-* Numéro permettant de trier les éléments d’un groupe
+* _Numéro permettant de trier les éléments d’un groupe_
 
 ### CIS_CPD_bdpm.txt 
 
-* Code CIS 
-* Condition de prescription ou de délivrance 
+* _Code CIS_
+* _Condition de prescription ou de délivrance_
 
 ### CIS_InfoImportantes_AAAAMMJJhhmiss_bdpm.txt 
 
-* Code CIS 
-* Date de début de l’information de sécurité (format JJ/MM/AAAA) 
-* Date de fin de l’information de sécurité (format JJ/MM/AAAA) 
-* Texte à afficher et lien vers l’information de sécurité 
+* _Code CIS_
+* _Date de début de l’information de sécurité (format JJ/MM/AAAA)_
+* _Date de fin de l’information de sécurité (format JJ/MM/AAAA)_
+* _Texte à afficher et lien vers l’information de sécurité_
 
 ## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Contributing
 
