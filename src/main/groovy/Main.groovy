@@ -60,7 +60,7 @@ class SQLWriter extends DefaultActor  {
         destination.delete()
     }
     public void afterStop(List undeliveredMessages) {
-        lines.each { destination.append it, "UTF-8" }
+        destination.append lines.join(), "UTF-8"
         log.info "All lines have been written to ${destination.absolutePath}"
         groovyx.gpars.GParsConfig.shutdown()
     }
@@ -160,8 +160,8 @@ class DownloadFileActor extends DefaultActor  {
                     reader.send it
                 }
                 reader.send FileProcessor.STOP
+                stop()
             }
-            stop()
         }
     }
 
@@ -222,6 +222,10 @@ class DownloadFileActor extends DefaultActor  {
     public void afterStop(List undeliveredMessages) {
         log.info "All lines of ${this.class.name} should have been processed."
     }
+
+    public String safe(String value) {
+        return value.replace("\'", "\'\'")
+    }
 }
 
 @Log class CIS_bdpm extends FileProcessor {
@@ -230,22 +234,39 @@ class DownloadFileActor extends DefaultActor  {
     }
 
     protected void processLineFragments(String[] lineFragments) {
-        log.info "${lineFragments}"
         // TODO restore presentation here
         writer << """
-INSERT INTO -- ${lineFragments[1]}
-    Prescription ("Code","Name") VALUES 
-    ("${lineFragments[0]}", "${lineFragments[1]}" );"""
+INSERT INTO -- 01 - prescription - ${lineFragments[1]}
+    Prescription ("Code","Name", "PresentationForm") VALUES 
+    ('${safe(lineFragments[0])}', '${safe(lineFragments[1])}', '${safe(lineFragments[2])}'' );"""
     }
 }
 @Log class CIS_CIP_bdpm extends FileProcessor {
     public CIS_CIP_bdpm(OptionAccessor options, SQLWriter writer) {
         super(options, writer)
     }
+
+    protected void processLineFragments(String[] lineFragments) {
+        writer << """
+INSERT INTO -- 02- presentation form - ${lineFragments[1]}
+    PresentationForm ("Name", "PresentationFormId") VALUES 
+    ('${safe(lineFragments[2])}', '${safe(lineFragments[6])}' );"""
+    }
 }
 @Log class CIS_COMPO_bdpm extends FileProcessor {
     public CIS_COMPO_bdpm(OptionAccessor options, SQLWriter writer) {
         super(options, writer)
+    }
+
+    protected void processLineFragments(String[] lineFragments) {
+        writer << """
+INSERT INTO -- 03- active ingredient - ${lineFragments[2]}
+    ActiveIngredient ("ActiveIngredientID", "Name") VALUES 
+    ('${safe(lineFragments[2])}', '${safe(lineFragments[4])}' );"""
+        writer << """
+INSERT INTO -- 13- active ingredient prescription link form - ${lineFragments[4]}
+    PrescriptionActiveIngredient ("PrescriptionCode", "ActiveIngredientID") VALUES 
+    ('${safe(lineFragments[0])}', '${safe(lineFragments[2])}' );"""
     }
 }
 @Log class CIS_CPD_bdpm extends FileProcessor {

@@ -32,8 +32,8 @@ According to documentation, this is the master file, containing essential inform
 * _Code CIS (Code Identifiant de Spécialité)_ mapped to `Prescription#code`
 * _Dénomination du médicament_ mapped to `Prescription#name`. **BEWARE** The denomination contains far more than name.
 As a consequence, a part of its name will be used to generate HomogenousGroup.
-* _Forme pharmaceutique_  mapped to `Prescription#presentation`
-* _Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_ mapped to `PrescriptionPresentationForm` ?
+* _Forme pharmaceutique_  mapped to `Prescription#presentationForm`
+* _Voies d'administration (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_ **unmapped**
 * _Statut administratif de l’autorisation de mise sur le marché (AMM)_ **unmapped**
 * _Type de procédure d'autorisation de mise sur le marché (AMM)_ **unmapped**
 * _Etat de commercialisation_ **unmapped**
@@ -45,24 +45,27 @@ As a consequence, a part of its name will be used to generate HomogenousGroup.
 
 ### CIS_CIP_bdpm.txt 
 
-* _Code CIS_
-* _Code CIP7 (Code Identifiant de Présentation à 7 chiffres)_
-* _Libellé de la présentation_
-* _Statut administratif de la présentation_
-* _Etat de commercialisation de la présentation tel que déclaré par le titulaire de l'AMM_
-* _Date de la déclaration de commercialisation (format JJ/MM/AAAA)_
-* _Code CIP13 (Code Identifiant de Présentation à 13 chiffres)_
-* _Agrément aux collectivités ("oui", "non" ou « inconnu »)_
-* _Taux de remboursement (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_
-* _Prix du médicament en euro_
-* _Texte présentant les indications ouvrant droit au remboursement par l’assurance maladie s’il y a plusieurs taux de remboursement pour la même présentation_
+Contains presentations infos.
+Unfortunatly, french presentations are associated with medicines, which spanish presentation aren't.
+
+* _Code CIS_ **unmapped**
+* _Code CIP7 (Code Identifiant de Présentation à 7 chiffres)_ **unmapped**
+* _Libellé de la présentation_ mapped to `PresentationForm#name`
+* _Statut administratif de la présentation_ **unmapped**
+* _Etat de commercialisation de la présentation tel que déclaré par le titulaire de l'AMM_ **unmapped**
+* _Date de la déclaration de commercialisation (format JJ/MM/AAAA)_ **unmapped**
+* _Code CIP13 (Code Identifiant de Présentation à 13 chiffres)_ `PresentationForm#PresentationFormId`
+* _Agrément aux collectivités ("oui", "non" ou « inconnu »)_ **unmapped**
+* _Taux de remboursement (avec un séparateur « ; » entre chaque valeur quand il y en a plusieurs)_ **unmapped**
+* _Prix du médicament en euro_ **unmapped**
+* _Texte présentant les indications ouvrant droit au remboursement par l’assurance maladie s’il y a plusieurs taux de remboursement pour la même présentation_ **unmapped**
 
 ### CIS_COMPO_bdpm.txt 
 
-* _Code CIS_
-* _Désignation de l'élément pharmaceutique_
-* _Code de la substance_
-* _Dénomination de la substance_
+* _Code CIS_ mapped to `PrescriptionActiveIngredient#PrescriptionCode`
+* _Désignation de l'élément pharmaceutique_  **unmapped** (for now) it is a packaging description 
+* _Code de la substance_ mapped to `ActiveIngredient#ActiveIngredientID` and `PrescriptionActiveIngredient#ActiveIngredientID`
+* _Dénomination de la substance_  mapped to `ActiveIngredient#name`
 * _Dosage de la substance_
 * _Référence de ce dosage (exemple : "[pour] un comprimé")_
 * _Nature du composant (principe actif : « SA » ou fraction thérapeutique : « ST »)_
