@@ -96,10 +96,12 @@ Unfortunatly, french presentations are associated with medicines, which spanish 
 
 ### CIS_GENER_bdpm.txt 
 
-* _Identifiant du groupe générique_
-* _Libellé du groupe générique_
-* _Code CIS_
-* _Type de générique_, avec les valeurs suivantes : 
+This mapping will be complex !
+
+* _Identifiant du groupe générique_ mapped to `HomogeneousGroup#HomogeneousGroupID`
+* _Libellé du groupe générique_ mapped to `HomogeneousGroup#Name`
+* _Code CIS_ the prescription having this name will have its `homogenousGroup` set to this identifier
+* _Type de générique, avec les valeurs suivantes_ when this value is set to 0, the prescription will have its generic field set to true : 
 ** 0 : « princeps » 
 ** 1 : « générique » 
 ** 2 : « génériques par complémentarité posologique » 

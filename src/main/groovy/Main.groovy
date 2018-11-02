@@ -238,7 +238,7 @@ class DownloadFileActor extends DefaultActor  {
         writer << """
 INSERT INTO -- 01 - prescription - ${lineFragments[1]}
     Prescription ("Code","Name", "PresentationForm") VALUES 
-    ('${safe(lineFragments[0])}', '${safe(lineFragments[1])}', '${safe(lineFragments[2])}'' );"""
+    ('${safe(lineFragments[0])}', '${safe(lineFragments[1])}', '${safe(lineFragments[2])}' );"""
     }
 }
 @Log class CIS_CIP_bdpm extends FileProcessor {
@@ -277,6 +277,17 @@ INSERT INTO -- 13- active ingredient prescription link form - ${lineFragments[4]
 @Log class CIS_GENER_bdpm extends FileProcessor {
     public CIS_GENER_bdpm(OptionAccessor options, SQLWriter writer) {
         super(options, writer)
+    }
+
+    protected void processLineFragments(String[] lineFragments) {
+        writer << """
+INSERT INTO -- 05- homogenenous group - ${lineFragments[2]}
+    HomogeneousGroup ("HomogeneousGroupID", "Name") VALUES 
+    ('${safe(lineFragments[1])}', '${safe(lineFragments[2])}' );"""
+        writer << """
+UPDATE Prescription -- 15- homogeneous group impact on prescription - ${lineFragments[2]}
+    SET HomogeneousGroup='${safe(lineFragments[1])}', Generic='${lineFragments[3]==0 ? 1 : 0}'
+    WHERE Code='${safe(lineFragments[2])}';"""
     }
 }
 @Log class CIS_HAS_ASMR_bdpm extends FileProcessor {
