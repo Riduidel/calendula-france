@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ndx</groupId>
+	<artifactId>calendula-france</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<description>Automated conversion of French medicine database into Calendula format</description>
+	<properties>
+		<groovy.version>2.5.4</groovy.version>
+	</properties>
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/org.ccil.cowan.tagsoup/tagsoup -->
+		<dependency>
+			<groupId>org.ccil.cowan.tagsoup</groupId>
+			<artifactId>tagsoup</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.codehaus.gpars/gpars -->
+		<dependency>
+			<groupId>org.codehaus.gpars</groupId>
+			<artifactId>gpars</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.gmaven</groupId>
+				<artifactId>groovy-maven-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.groovy</groupId>
+						<artifactId>groovy-all</artifactId>
+						<version>${groovy.version}</version>
+    					<type>pom</type>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>run_script</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<classpathScope>compile</classpathScope>
+							<!-- TODO rename script into something like BuildSQLScript -->
+							<source>${project.basedir}/src/main/groovy/Main.groovy</source>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

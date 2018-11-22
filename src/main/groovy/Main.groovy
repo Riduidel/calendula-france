@@ -1,7 +1,3 @@
-@Grapes([
-    @Grab('org.ccil.cowan.tagsoup:tagsoup:1.2.1'),
-    @Grab(group='org.codehaus.gpars', module='gpars', version='1.2.1')
-])
 import groovy.cli.commons.*
 import groovy.transform.*
 import groovy.util.logging.*
