@@ -268,10 +268,10 @@ import groovyx.gpars.actor.*
         Various values for market authorizations are
 
             Autorisation active
-            Autorisation abrogée
-            Autorisation archivée
+            Autorisation abrogÃ©e
+            Autorisation archivÃ©e
             Autorisation suspendue
-            Autorisation retirée
+            Autorisation retirÃ©e
         (kept for later reference)
         */
 
