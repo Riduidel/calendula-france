@@ -115,6 +115,8 @@ This mapping will be complex !
 
 ### CIS_InfoImportantes_AAAAMMJJhhmiss_bdpm.txt 
 
+This file is used to check wether the others should be downloaded, according to 
+
 * _Code CIS_
 * _Date de début de l’information de sécurité (format JJ/MM/AAAA)_
 * _Date de fin de l’information de sécurité (format JJ/MM/AAAA)_
