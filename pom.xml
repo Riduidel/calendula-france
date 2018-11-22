@@ -44,8 +44,7 @@
 						</goals>
 						<configuration>
 							<classpathScope>compile</classpathScope>
-							<!-- TODO rename script into something like BuildSQLScript -->
-							<source>${project.basedir}/src/main/groovy/Main.groovy</source>
+							<source>${project.basedir}/src/main/groovy/BuildSQLScript.groovy</source>
 						</configuration>
 					</execution>
 				</executions>
