@@ -8,8 +8,7 @@ import groovy.util.logging.*
 import org.ccil.cowan.tagsoup.Parser
 import groovyx.gpars.actor.*
 
-@Log 
-public class Main {
+@Log public class Main {
     public static final String PUBLIC_MEDICINE_DATABASE = "http://base-donnees-publique.medicaments.gouv.fr/telechargement.php"
     public static final String TEMPORARY_FOLDER = "target/files"
     public static final String DESTINATION_FILE = "target/HAS.sql"
@@ -44,10 +43,8 @@ public class Main {
         openPage.send options.s
         openPage.join()
     }
-
 }
-@Log 
-class SQLWriter extends DefaultActor  {
+@Log  class SQLWriter extends DefaultActor  {
     private OptionAccessor options
     private File destination
     private Set<String> processors = new HashSet()
@@ -57,7 +54,6 @@ class SQLWriter extends DefaultActor  {
         this.options = options
         this.destination = new File(options.d)
         destination.getParentFile().mkdirs()
-        destination.delete()
     }
     public void afterStop(List undeliveredMessages) {
         destination.append lines.join(), "UTF-8"
@@ -70,6 +66,9 @@ class SQLWriter extends DefaultActor  {
                 if (sqlLine.startsWith(FileProcessor.START)) {
                     processors.add(sqlLine.substring(FileProcessor.START.size()))
                     log.info "Added one processor. Processors are ${processors}"
+                    // Since file is to be written at the end, we just have to 
+                    // delete the file when starting the various file processorss
+                    destination.delete()
                 } else if (sqlLine.startsWith(FileProcessor.STOP)) {
                     processors.remove(sqlLine.substring(FileProcessor.STOP.size()))
                     log.info "Removed one processor. Processors are ${processors}"
@@ -84,8 +83,8 @@ class SQLWriter extends DefaultActor  {
         }
     }
 }
-@Log 
-class OpenPageActor extends DefaultActor  {
+
+@Log  class OpenPageActor extends DefaultActor  {
     private OptionAccessor options
     private boolean override
     public OpenPageActor(OptionAccessor options) {
@@ -108,14 +107,41 @@ class OpenPageActor extends DefaultActor  {
                 def lastList = lists[lists.size()-1]
                 SQLWriter  writer = new SQLWriter(options).start()
                 // This last list contains all the files we have to download
-                lastList.children().each {
+                def files = lastList.children().collect {
                     def text = it.a.text()
                     def address = it.a["@href"][0]
-                   log.info "We need to download \"${text}\""
-                    def downloader = new DownloadFileActor(options, writer).start()
-                    downloader.send address
+//                    log.info "We need to download \"${text}\""
+                    address
                 }
+                // Fist download infos importantes and make sure last line is earlier than generated SQL file
+                new CheckImportantInfos(options, writer).start() << files
                 writer.join()
+                stop()
+            }
+        }
+    }
+}
+@Log  class CheckImportantInfos extends DefaultActor  {
+    private OptionAccessor options
+    private SQLWriter writer
+    public CheckImportantInfos(OptionAccessor options, SQLWriter writer) {
+        super()
+        this.options = options
+        this.writer = writer
+    }
+    @Override protected void act() {
+        loop {
+            react { files ->
+                def toDownload = files.find { it.contains "InfoImportantes" }
+                log.info "Immediatly downloading ${this.options.s+toDownload} to check if other ones should be downloaded"
+                def destinationDir = new File(this.options.t)
+                destinationDir.mkdirs()
+                def fileName = toDownload.substring(toDownload.indexOf('=')+1)
+                File destination = new File(new File(options.t), fileName)
+                DownloadFileActor.download(this.options.s+toDownload, destination)
+                files.each {
+                    new DownloadFileActor(options, writer).start() << it
+                }
                 stop()
             }
         }
@@ -123,8 +149,7 @@ class OpenPageActor extends DefaultActor  {
 }
 
 
-@Log 
-class DownloadFileActor extends DefaultActor  {
+@Log  class DownloadFileActor extends DefaultActor  {
     private OptionAccessor options
     private File folder
     private String baseUrl
@@ -135,26 +160,29 @@ class DownloadFileActor extends DefaultActor  {
         this.options = options
         this.baseUrl = options.s
         this.folder = new File(options.t)
-        this.folder.mkdirs()
         this.override = options.o
         this.writer = writer
+    }
+
+    public static void download(String url, File destination) {
+        log.info "Downloading file from ${url} to ${destination}"
+        def outputStream = destination.newOutputStream()  
+        outputStream << new URL(url).openStream()  
+        outputStream.close()  
+        log.info "Downloaded file from ${url} to ${destination}"
     }
 
     @Override protected void act() {
         loop {
             react { url ->
                 def fileName = url.substring(url.indexOf('=')+1)
-                File destination = new File(this.folder, fileName)
-                if (override || !destination.exists()) {
+                def reader = createReader(fileName)
+                File destination = new File(new File(options.t), fileName)
+                if (reader.shouldOverride(override, destination)) {
                     def realUrl = this.baseUrl+url
-                    log.info "Downloading file from ${realUrl} to ${destination}"
-                    def outputStream = destination.newOutputStream()  
-                    outputStream << new URL(realUrl).openStream()  
-                    outputStream.close()  
-                    log.info "Downloaded file from ${realUrl} to ${destination}"
+                    DownloadFileActor.download(realUrl, destination)
                 }
                 // Now open file, read each line, and send it to the right actor
-                def reader = createReader(fileName)
                 log.info "Reading lines of ${fileName}"
                 destination.eachLine('ISO-8859-1') {
                     reader.send it
@@ -226,6 +254,10 @@ class DownloadFileActor extends DefaultActor  {
     public String safe(String value) {
         return value.replace("\'", "\'\'")
     }
+
+    public boolean shouldOverride(boolean override, File destination) {
+        return override || !destination.exists()
+    }
 }
 
 @Log class CIS_bdpm extends FileProcessor {
@@ -234,7 +266,19 @@ class DownloadFileActor extends DefaultActor  {
     }
 
     protected void processLineFragments(String[] lineFragments) {
-        // TODO restore presentation here
+        /*
+        def ammValue = safe(lineFragments[4])
+        As a design, we keep all medicines, even those whoch authorization has been removed.
+        Various values for market authorizations are
+
+            Autorisation active
+            Autorisation abrogée
+            Autorisation archivée
+            Autorisation suspendue
+            Autorisation retirée
+        (kept for later reference)
+        */
+
         writer << """
 INSERT INTO -- 01 - prescription - ${lineFragments[1]}
     Prescription ("Code","Name", "PresentationForm") VALUES 
@@ -304,6 +348,14 @@ UPDATE Prescription -- 15- homogeneous group impact on prescription - ${lineFrag
     public CIS_InfoImportantes(OptionAccessor options, SQLWriter writer) {
         super(options, writer)
     }
+
+    /**
+     * Always oevrride infos importantes, since it is the file used to check wether the other ones must be overwritten
+     */
+    public boolean shouldOverride(boolean override, File destination) {
+        return true
+    }
+
 }
 @Log class HAS_LiensPageCT_bdpm extends FileProcessor {
     public HAS_LiensPageCT_bdpm(OptionAccessor options, SQLWriter writer) {
